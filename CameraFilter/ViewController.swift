@@ -28,10 +28,31 @@ class ViewController: UIViewController {
               let photosVC = navC.viewControllers.first as? PhotosCollectionViewController else { return }
         
         photosVC.selectedPhoto.subscribe(onNext: { [weak self] photo in
-            self?.photoImageView.image = photo
+            DispatchQueue.main.async {
+                self?.updateUI(with: photo)
+            }
         }).disposed(by: disposeBag)
+
+    }
+
+    
+    private func updateUI(with image: UIImage) {
+        self.photoImageView.image = image
+        self.applyFilterButton.isHidden = false
         
+    }
+
+    
+    @IBAction func applyFilterAction(sender : UIButton) {
         
+        guard let sourceImage = self.photoImageView.image else { return }
+        
+        FiltersService().applyFilter(to: sourceImage)
+            .subscribe(onNext: { filteredImage in
+                DispatchQueue.main.async {
+                    self.photoImageView.image = filteredImage
+                }
+            }).disposed(by: disposeBag)
     }
     
     
